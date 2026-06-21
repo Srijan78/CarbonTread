@@ -69,11 +69,11 @@ class DashboardManager {
             const clarityPct = data.sky_gauge_clarity_pct || 0;
             const dialCircumference = 251.3;
             const targetOffset = dialCircumference * (1 - clarityPct / 100);
-            
+
             gsap.killTweensOf(confFill);
-            
+
             // Set initial state to full dashoffset (empty dial) then animate fill
-            gsap.fromTo(confFill, 
+            gsap.fromTo(confFill,
                 { strokeDashoffset: dialCircumference },
                 {
                     strokeDashoffset: targetOffset,

@@ -1,10 +1,15 @@
 import os
 import sqlite3
 
-DB_PATH = os.path.join(
-    os.path.dirname(
-        os.path.dirname(__file__)),
-    "carbontread.db")
+DB_PATH = os.getenv(
+    "DATABASE_PATH",
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(
+                os.path.dirname(__file__)),
+            "carbontread.db")
+    )
+)
 
 
 def get_db_connection() -> sqlite3.Connection:
