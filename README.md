@@ -8,7 +8,7 @@ No login required. Tap-based onboarding. Real numbers from the first screen, not
 
 ## Features
 
-- **Live dashboard** — today's CO2 estimate, % of daily carbon budget, category breakdown (Transport / Food / Energy)
+- **Live dashboard** — today's CO2 estimate, % of the 6.0kg daily carbon budget (aligned with the 1.5°C climate goal by 2030), category breakdown (Transport / Food / Energy)
 - **Confidence-tagged tracking** — every number is marked HIGH (logged today), MEDIUM (recalled), or LOW (assumed baseline), so nothing is shown with false precision
 - **Counterfactual comparisons** — "your Uber trip cost 2.2kg, metro would've cost 0.17kg"
 - **Daily AI suggestions** — three ranked, weather-aware, non-repeating actions with estimated CO2 saved
@@ -122,6 +122,10 @@ All routes except `/api/session/init` require an `X-User-ID` header (issued by s
 ```bash
 pytest tests/ -v
 ```
+
+## Deployment
+
+Refer to [PYTHONANYWHERE_DEPLOY.md](PYTHONANYWHERE_DEPLOY.md) for detailed step-by-step instructions on deploying the Flask backend and SQLite database to a production environment (PythonAnywhere).
 
 ---
 
