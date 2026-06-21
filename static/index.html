@@ -23,7 +23,9 @@
          ============================================================ -->
     <div id="onboarding-overlay" class="onboarding-overlay">
         <div class="onboarding-wrapper">
-            <div id="sky-gauge-container" class="onboarding-progress-bar">
+            <div id="sky-gauge-container" class="onboarding-progress-bar"
+                role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+                aria-valuetext="0% Calibrated">
                 <div class="sky-gauge">
                     <div id="sky-gauge-fill" class="sky-gauge-fill"></div>
                 </div>
@@ -55,16 +57,16 @@
         <aside class="sidebar">
             <div class="sidebar-logo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                    stroke-linejoin="round">
+                    stroke-linejoin="round" aria-hidden="true">
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                 </svg>
                 <span>Carbon<span class="logo-accent">Tread</span></span>
             </div>
 
             <nav id="app-nav" class="sidebar-nav">
-                <button class="nav-link active" data-target="screen-dashboard">
+                <button class="nav-link active" data-target="screen-dashboard" aria-current="page">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
+                        stroke-linejoin="round" aria-hidden="true">
                         <rect x="3" y="3" width="7" height="7" rx="1" />
                         <rect x="14" y="3" width="7" height="7" rx="1" />
                         <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -74,7 +76,7 @@
                 </button>
                 <button class="nav-link" data-target="screen-suggestions">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
+                        stroke-linejoin="round" aria-hidden="true">
                         <path d="M9 18h6" />
                         <path d="M10 22h4" />
                         <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" />
@@ -83,7 +85,7 @@
                 </button>
                 <button class="nav-link" data-target="screen-insights">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
+                        stroke-linejoin="round" aria-hidden="true">
                         <path d="M18 20V10" />
                         <path d="M12 20V4" />
                         <path d="M6 20v-6" />
@@ -135,7 +137,9 @@
 
                     <!-- Confidence Indicator Dial Card -->
                     <div class="card dial-card">
-                        <div class="dial-container">
+                        <div id="dashboard-confidence-container" class="dial-container"
+                            role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+                            aria-valuetext="0% data clarity">
                             <span class="dial-title">How much we know</span>
                             <div class="dial-svg-wrapper">
                                 <svg width="200" height="120" viewBox="0 0 200 120">
@@ -170,7 +174,7 @@
                                 <span class="stat-dash"></span>
                                 <span class="stat-label">Energy</span>
                             </div>
-                            <span class="stat-icon-emoji">⚡</span>
+                            <span class="stat-icon-emoji" aria-hidden="true">⚡</span>
                         </div>
                         <div class="stat-value-container">
                             <span id="value-energy" class="stat-number">0.00</span>
@@ -188,7 +192,7 @@
                                 <span class="stat-dash"></span>
                                 <span class="stat-label">Food</span>
                             </div>
-                            <span class="stat-icon-emoji">🍽️</span>
+                            <span class="stat-icon-emoji" aria-hidden="true">🍽️</span>
                         </div>
                         <div class="stat-value-container">
                             <span id="value-food" class="stat-number">0.00</span>
@@ -206,7 +210,7 @@
                                 <span class="stat-dash"></span>
                                 <span class="stat-label">Transport</span>
                             </div>
-                            <span class="stat-icon-emoji">🚗</span>
+                            <span class="stat-icon-emoji" aria-hidden="true">🚗</span>
                         </div>
                         <div class="stat-value-container">
                             <span id="value-transport" class="stat-number">0.00</span>
@@ -291,10 +295,10 @@
          LOGGER MODAL — Centered desktop modal
          ============================================================ -->
     <div id="logger-backdrop" class="sheet-backdrop"></div>
-    <div id="logger-sheet" class="bottom-sheet">
+    <div id="logger-sheet" class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="logger-sheet-title">
         <div class="sheet-header">
-            <div class="sheet-title">Log Daily Activity</div>
-            <button id="logger-close-btn" class="sheet-close">&times;</button>
+            <div id="logger-sheet-title" class="sheet-title">Log Daily Activity</div>
+            <button id="logger-close-btn" class="sheet-close" aria-label="Close modal">&times;</button>
         </div>
 
         <div class="sheet-body">
@@ -308,21 +312,21 @@
             <div id="logger-manual-section">
                 <div class="logger-category-select">
                     <button class="cat-select-btn active" data-category="transport">
-                        <svg viewBox="0 0 24 24">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path
                                 d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-5h14v5zM7.5 13c-.83 0-1.5.67-1.5 1.5S6.67 16 7.5 16s1.5-.67 1.5-1.5S8.33 13 7.5 13zm9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z" />
                         </svg>
                         <span>Transport</span>
                     </button>
                     <button class="cat-select-btn" data-category="food">
-                        <svg viewBox="0 0 24 24">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path
                                 d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm8-3h-3V2h-2v9c0 2.21 1.79 4 4 4v7h2v-7c2.21 0 4-1.79 4-4V2h-5v4z" />
                         </svg>
                         <span>Food</span>
                     </button>
                     <button class="cat-select-btn" data-category="energy">
-                        <svg viewBox="0 0 24 24">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M18 10h-4V4h-1.5L5.75 13.5h4.25v6.5h1.5L18 10z" />
                         </svg>
                         <span>Energy</span>

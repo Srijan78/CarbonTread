@@ -49,6 +49,24 @@ def create_app() -> Flask:
         """Serve the frontend single-page application entry point."""
         return app.send_static_file("index.html")
 
+    @app.after_request
+    def add_security_headers(response: Response) -> Response:
+        """Inject strict security headers and Content-Security-Policy globally."""
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        
+        # CSP rules allowing local assets, Google Fonts, GSAP CDN, and Gemini API requests
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "connect-src 'self' https://generativelanguage.googleapis.com; "
+            "img-src 'self' data:;"
+        )
+        return response
+
     return app
 
 

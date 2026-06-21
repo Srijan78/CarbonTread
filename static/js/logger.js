@@ -13,6 +13,9 @@ class LoggerManager {
      * Open the bottom sheet and reset form states.
      */
     openLogger() {
+        // Save the element that currently has focus to return it on close
+        this.previouslyFocusedElement = document.activeElement;
+
         const backdrop = document.getElementById("logger-backdrop");
         const sheet = document.getElementById("logger-sheet");
         const prefersMotion = state && state.prefersReducedMotion;
@@ -29,6 +32,9 @@ class LoggerManager {
                 { opacity: 0, scale: sheetStartScale }, 
                 { opacity: 1, scale: 1, duration: sheetDuration, ease: prefersMotion ? "none" : "back.out(1.2)" }
             );
+
+            // Configure keyboard accessibility focus trap
+            this.setupFocusTrap();
         }
         
         // Hide comparison display initially
@@ -39,12 +45,81 @@ class LoggerManager {
     }
 
     /**
+     * Set up keyboard focus trap and direct focus on logger modal open.
+     */
+    setupFocusTrap() {
+        const sheet = document.getElementById("logger-sheet");
+        if (!sheet) return;
+
+        const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        
+        const getVisibleFocusables = () => {
+            return Array.from(sheet.querySelectorAll(focusableSelectors))
+                .filter(el => {
+                    const style = window.getComputedStyle(el);
+                    return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+                });
+        };
+
+        const visibleFocusables = getVisibleFocusables();
+        if (visibleFocusables.length === 0) return;
+
+        // Focus the first element (close button) immediately
+        const defaultFocus = document.getElementById("logger-close-btn") || visibleFocusables[0];
+        if (defaultFocus) {
+            defaultFocus.focus();
+        }
+
+        if (this.focusTrapHandler) {
+            document.removeEventListener("keydown", this.focusTrapHandler);
+        }
+
+        this.focusTrapHandler = (e) => {
+            if (e.key === "Tab") {
+                const activeFocusables = getVisibleFocusables();
+                if (activeFocusables.length === 0) return;
+
+                const firstEl = activeFocusables[0];
+                const lastEl = activeFocusables[activeFocusables.length - 1];
+
+                if (e.shiftKey) { // Shift + Tab
+                    if (document.activeElement === firstEl) {
+                        lastEl.focus();
+                        e.preventDefault();
+                    }
+                } else { // Tab
+                    if (document.activeElement === lastEl) {
+                        firstEl.focus();
+                        e.preventDefault();
+                    }
+                }
+            } else if (e.key === "Escape") {
+                this.closeLogger();
+            }
+        };
+
+        document.addEventListener("keydown", this.focusTrapHandler);
+    }
+
+    /**
      * Close the bottom sheet and update metrics.
      */
     closeLogger() {
         const backdrop = document.getElementById("logger-backdrop");
         const sheet = document.getElementById("logger-sheet");
         const prefersMotion = state && state.prefersReducedMotion;
+        
+        // Remove focus trap keydown listener
+        if (this.focusTrapHandler) {
+            document.removeEventListener("keydown", this.focusTrapHandler);
+            this.focusTrapHandler = null;
+        }
+
+        // Return focus to opening button
+        if (this.previouslyFocusedElement && typeof this.previouslyFocusedElement.focus === "function") {
+            this.previouslyFocusedElement.focus();
+        }
+
         if (backdrop && sheet) {
             gsap.killTweensOf([backdrop, sheet]);
             const duration = prefersMotion ? 0 : 0.25;

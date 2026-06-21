@@ -70,6 +70,13 @@ class DashboardManager {
             const dialCircumference = 251.3;
             const targetOffset = dialCircumference * (1 - clarityPct / 100);
 
+            // Update ARIA on confidence container
+            const confContainer = document.getElementById("dashboard-confidence-container");
+            if (confContainer) {
+                confContainer.setAttribute("aria-valuenow", Math.round(clarityPct));
+                confContainer.setAttribute("aria-valuetext", `${Math.round(clarityPct)}% data clarity`);
+            }
+
             gsap.killTweensOf(confFill);
 
             // Set initial state to full dashoffset (empty dial) then animate fill

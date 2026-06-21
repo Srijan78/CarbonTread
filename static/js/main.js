@@ -251,13 +251,15 @@ async function switchTab(tabId) {
         }
     }
 
-    // Toggle active sidebar nav link styling
+    // Toggle active sidebar nav link styling and aria-current
     const navLinks = document.querySelectorAll(".nav-link");
     navLinks.forEach(link => {
         if (link.getAttribute("data-target") === tabId) {
             link.classList.add("active");
+            link.setAttribute("aria-current", "page");
         } else {
             link.classList.remove("active");
+            link.removeAttribute("aria-current");
         }
     });
 

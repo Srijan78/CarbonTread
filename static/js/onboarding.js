@@ -404,6 +404,13 @@ class OnboardingManager {
 
         fill.style.width = `${percentage}%`;
         label.textContent = `${percentage}% Calibrated`;
+
+        // Update progressbar ARIA states
+        const container = document.getElementById("sky-gauge-container");
+        if (container) {
+            container.setAttribute("aria-valuenow", percentage);
+            container.setAttribute("aria-valuetext", `${percentage}% Calibrated`);
+        }
     }
 
     /**
