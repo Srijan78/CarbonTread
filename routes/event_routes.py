@@ -191,8 +191,7 @@ def confirm_baseline() -> Response:
         }
         food_subtype = diet_map.get(user_row["diet"], "vegetarian_day")
 
-        fuel_suffix = f"_{
-            user_row['commute_fuel_type']}" if user_row["commute_fuel_type"] else ""
+        fuel_suffix = f"_{user_row['commute_fuel_type']}" if user_row['commute_fuel_type'] else ""
         transport_subtype = f"{user_row['default_commute']}{fuel_suffix}"
 
         conn.execute(
