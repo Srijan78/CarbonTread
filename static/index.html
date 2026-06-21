@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarbonTread — Personal Carbon Tracker</title>
+    <meta name="description" content="An honest, data-driven carbon footprint awareness platform for urban Indian citizens. Track daily emissions, compare choices with counterfactual comparisons, and discover custom suggestions.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <canvas id="ambient-canvas"></canvas>
+
+    <!-- ============================================================
+         ONBOARDING OVERLAY — Full-screen calibration wizard
+         ============================================================ -->
+    <div id="onboarding-overlay" class="onboarding-overlay">
+        <div class="onboarding-wrapper">
+            <div id="sky-gauge-container" class="onboarding-progress-bar">
+                <div class="sky-gauge">
+                    <div id="sky-gauge-fill" class="sky-gauge-fill"></div>
+                </div>
+                <span id="sky-gauge-percentage-label" class="onboarding-progress-label mono">0% Calibrated</span>
+            </div>
+
+            <section id="screen-onboarding" class="tab-content active visible">
+                <div class="calibration-container">
+                    <h2 class="calibration-heading">Calibration</h2>
+                    <div id="onboarding-calibration-card" class="calibration-card">
+                        <div id="calibration-question-title" class="calibration-question">Initial Calibration...</div>
+                        <div id="calibration-options-container" class="calibration-options"></div>
+                        <div class="onboarding-nav">
+                            <button id="onboarding-prev-btn" class="btn-secondary" disabled>Back</button>
+                            <button id="onboarding-next-btn" class="btn-primary" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MAIN APP LAYOUT — Sidebar + Content
+         ============================================================ -->
+    <div id="app-layout" class="app-layout" style="display: none;">
+        
+        <!-- ===== Left Sidebar ===== -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                <span>Carbon<span class="logo-accent">Tread</span></span>
+            </div>
+
+            <nav id="app-nav" class="sidebar-nav">
+                <button class="nav-link active" data-target="screen-dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    Dashboard
+                </button>
+                <button class="nav-link" data-target="screen-suggestions">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18h6"/>
+                        <path d="M10 22h4"/>
+                        <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>
+                    </svg>
+                    Suggestions
+                </button>
+                <button class="nav-link" data-target="screen-insights">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 20V10"/>
+                        <path d="M12 20V4"/>
+                        <path d="M6 20v-6"/>
+                    </svg>
+                    Insights
+                </button>
+            </nav>
+
+            <div class="sidebar-profile">
+                <div class="profile-avatar">U</div>
+                <div class="profile-info">
+                    <span class="profile-name">User</span>
+                    <span id="session-indicator" class="profile-id mono" title="Double click to reset session">ID: ...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== Main Content Area ===== -->
+        <div class="main-content">
+            <!-- Sticky Content Header -->
+            <header class="content-header">
+                <h1 id="page-title" class="header-title">Dashboard</h1>
+                <div class="sync-status-pill">
+                    <span class="sync-dot"></span>
+                    <span id="sync-text" class="sync-text">Data synced just now</span>
+                </div>
+            </header>
+
+            <!-- ===== Dashboard Screen ===== -->
+            <section id="screen-dashboard" class="tab-content active visible">
+                <div class="dashboard-hero-grid">
+                    <!-- Daily Emissions Focus Card -->
+                    <div class="card focus-card">
+                        <div class="focus-card-header">
+                            <span class="focus-card-label">Daily Emissions</span>
+                        </div>
+                        <div class="emissions-hero-value">
+                            <span id="dashboard-total-emissions" class="hero-emissions-num">0.00</span>
+                            <span class="hero-emissions-unit">kg</span>
+                        </div>
+                        <div id="dashboard-budget-ratio" class="budget-text">0.0% of your 3.5kg budget</div>
+                        <div class="focus-actions">
+                            <button id="dashboard-usual-day-btn" class="btn-secondary">Log Standard Day</button>
+                            <button id="dashboard-open-logger-btn" class="btn-primary">Log an Activity</button>
+                        </div>
+                    </div>
+
+                    <!-- Confidence Indicator Dial Card -->
+                    <div class="card dial-card">
+                        <div class="dial-container">
+                            <span class="dial-title">How much we know</span>
+                            <div class="dial-svg-wrapper">
+                                <svg width="200" height="120" viewBox="0 0 200 120">
+                                    <!-- Semicircular background path: radius 80, centered at 100,110 -->
+                                    <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="#E2E8F0" stroke-width="12" stroke-linecap="round" />
+                                    <!-- Semicircular fill path -->
+                                    <path id="confidence-dial-fill" d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="#15803D" stroke-width="12" stroke-linecap="round"
+                                          stroke-dasharray="251.3" stroke-dashoffset="251.3" />
+                                </svg>
+                                <div class="dial-center-text">
+                                    <span id="confidence-percentage-num" class="dial-percentage-value">0%</span>
+                                </div>
+                            </div>
+                            <div class="dial-legend">
+                                <span class="legend-item"><span class="legend-dash dash-confirmed"></span>Confirmed</span>
+                                <span class="legend-item"><span class="legend-dash dash-estimated"></span>Estimated</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Section: Category Breakdown Cards -->
+                <div class="breakdown-cards-grid">
+                    <!-- Energy Card -->
+                    <div id="card-energy" class="floating-stat-card estimated">
+                        <div class="stat-header">
+                            <div class="stat-meta">
+                                <span class="stat-dash"></span>
+                                <span class="stat-label">Energy</span>
+                            </div>
+                            <span class="stat-icon-emoji">⚡</span>
+                        </div>
+                        <div class="stat-value-container">
+                            <span id="value-energy" class="stat-number">0.00</span>
+                            <span class="stat-unit">kg</span>
+                        </div>
+                        <div class="stat-footer">
+                            <span id="conf-badge-energy" class="stat-confidence-label">Estimated</span>
+                        </div>
+                    </div>
+
+                    <!-- Food Card -->
+                    <div id="card-food" class="floating-stat-card estimated">
+                        <div class="stat-header">
+                            <div class="stat-meta">
+                                <span class="stat-dash"></span>
+                                <span class="stat-label">Food</span>
+                            </div>
+                            <span class="stat-icon-emoji">🍽️</span>
+                        </div>
+                        <div class="stat-value-container">
+                            <span id="value-food" class="stat-number">0.00</span>
+                            <span class="stat-unit">kg</span>
+                        </div>
+                        <div class="stat-footer">
+                            <span id="conf-badge-food" class="stat-confidence-label">Estimated</span>
+                        </div>
+                    </div>
+
+                    <!-- Transport Card -->
+                    <div id="card-transport" class="floating-stat-card estimated">
+                        <div class="stat-header">
+                            <div class="stat-meta">
+                                <span class="stat-dash"></span>
+                                <span class="stat-label">Transport</span>
+                            </div>
+                            <span class="stat-icon-emoji">🚗</span>
+                        </div>
+                        <div class="stat-value-container">
+                            <span id="value-transport" class="stat-number">0.00</span>
+                            <span class="stat-unit">kg</span>
+                        </div>
+                        <div class="stat-footer">
+                            <span id="conf-badge-transport" class="stat-confidence-label">Estimated</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== Suggestions Screen ===== -->
+            <section id="screen-suggestions" class="tab-content">
+                <div id="suggestions-empty-state" class="empty-state">
+                    Generating personalized suggestions...
+                </div>
+                <div id="suggestions-list" class="suggestions-list"></div>
+            </section>
+
+            <!-- ===== Insights Screen ===== -->
+            <section id="screen-insights" class="tab-content">
+                <div class="insights-container">
+                    <div class="insights-section">
+                        <h2 class="card-title">Data Quality Report</h2>
+                        <table class="confidence-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Weekly Tier</th>
+                                    <th>Active Source</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Transport</td>
+                                    <td><div class="confidence-grid"><span id="report-conf-transport" class="confidence-chip low">LOW</span></div></td>
+                                    <td id="report-source-transport" class="mono" style="font-size: 0.8rem;">Profile baseline</td>
+                                </tr>
+                                <tr>
+                                    <td>Food</td>
+                                    <td><div class="confidence-grid"><span id="report-conf-food" class="confidence-chip low">LOW</span></div></td>
+                                    <td id="report-source-food" class="mono" style="font-size: 0.8rem;">Profile baseline</td>
+                                </tr>
+                                <tr>
+                                    <td>Energy</td>
+                                    <td><div class="confidence-grid"><span id="report-conf-energy" class="confidence-chip low">LOW</span></div></td>
+                                    <td id="report-source-energy" class="mono" style="font-size: 0.8rem;">Profile baseline</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div id="insights-nudge-box" class="nudge-box"></div>
+                    </div>
+
+                    <div class="insights-section">
+                        <h2 class="card-title">Weekly Carbon Story</h2>
+                        <div id="narrative-empty-state" class="empty-state">
+                            Compiling weekly narrative...
+                        </div>
+                        <div id="narrative-card" style="display: none;">
+                            <div id="narrative-bullets" class="narrative-bullets"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         LOGGER MODAL — Centered desktop modal
+         ============================================================ -->
+    <div id="logger-backdrop" class="sheet-backdrop"></div>
+    <div id="logger-sheet" class="bottom-sheet">
+        <div class="sheet-header">
+            <div class="sheet-title">Log Daily Activity</div>
+            <button id="logger-close-btn" class="sheet-close">&times;</button>
+        </div>
+        
+        <div class="sheet-body">
+            <!-- Method Toggle -->
+            <div class="toggle-pill-wrapper">
+                <button id="method-manual-btn" class="toggle-pill-btn active">Structured</button>
+                <button id="method-ai-btn" class="toggle-pill-btn">AI Free Text</button>
+            </div>
+
+            <!-- Structured Manual Section -->
+            <div id="logger-manual-section">
+                <div class="logger-category-select">
+                    <button class="cat-select-btn active" data-category="transport">
+                        <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-5h14v5zM7.5 13c-.83 0-1.5.67-1.5 1.5S6.67 16 7.5 16s1.5-.67 1.5-1.5S8.33 13 7.5 13zm9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/></svg>
+                        <span>Transport</span>
+                    </button>
+                    <button class="cat-select-btn" data-category="food">
+                        <svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm8-3h-3V2h-2v9c0 2.21 1.79 4 4 4v7h2v-7c2.21 0 4-1.79 4-4V2h-5v4z"/></svg>
+                        <span>Food</span>
+                    </button>
+                    <button class="cat-select-btn" data-category="energy">
+                        <svg viewBox="0 0 24 24"><path d="M18 10h-4V4h-1.5L5.75 13.5h4.25v6.5h1.5L18 10z"/></svg>
+                        <span>Energy</span>
+                    </button>
+                </div>
+
+                <!-- Transport Form -->
+                <form id="form-transport" class="logger-form active">
+                    <div class="form-group">
+                        <label class="form-label" for="commute-mode">Commute Mode</label>
+                        <select id="commute-mode" class="form-select">
+                            <option value="car">Car (Personal)</option>
+                            <option value="uber_ola">Uber / Ola</option>
+                            <option value="auto_rickshaw">Auto Rickshaw</option>
+                            <option value="bus">Bus</option>
+                            <option value="metro">Metro</option>
+                            <option value="train">Train</option>
+                            <option value="two_wheeler">Two-Wheeler</option>
+                            <option value="walk_cycle">Walk / Cycle</option>
+                        </select>
+                    </div>
+                    <div id="fuel-type-container" class="form-group">
+                        <label class="form-label" for="commute-fuel">Fuel Type</label>
+                        <select id="commute-fuel" class="form-select">
+                            <option value="petrol">Petrol</option>
+                            <option value="diesel">Diesel</option>
+                            <option value="cng">CNG</option>
+                            <option value="electric">Electric</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="commute-distance">Distance Traveled (km)</label>
+                        <input type="number" id="commute-distance" class="form-input" min="0" step="0.5" value="10">
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-top: 4px; width: 100%;">Log Transport Event</button>
+                </form>
+
+                <!-- Food Form -->
+                <form id="form-food" class="logger-form">
+                    <div class="form-group">
+                        <label class="form-label" for="food-pattern-choice">Dietary Choice Today</label>
+                        <select id="food-pattern-choice" class="form-select">
+                            <option value="had_meat">Had meat (Non-Vegetarian)</option>
+                            <option value="went_veg">Went veg (Vegetarian)</option>
+                            <option value="vegan">Vegan Day</option>
+                            <option value="delivery">Ordered delivery</option>
+                            <option value="eat_out">Ate out</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-top: 4px; width: 100%;">Log Food Event</button>
+                </form>
+
+                <!-- Energy Form -->
+                <form id="form-energy" class="logger-form">
+                    <div class="form-group">
+                        <label class="form-label" for="energy-subtype">Energy Activity</label>
+                        <select id="energy-subtype" class="form-select">
+                            <option value="electricity_bill">Electricity Consumption (kWh/Units)</option>
+                            <option value="lpg_refill">LPG Cylinder Refill (Standard 14.2kg)</option>
+                            <option value="png_usage">Piped Natural Gas Usage (m³ / SCM)</option>
+                            <option value="ac_usage">AC Usage Duration (hours)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" id="energy-value-label" for="energy-value">Units Consumed</label>
+                        <input type="number" id="energy-value" class="form-input" min="0" step="0.1" value="5">
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-top: 4px; width: 100%;">Log Energy Event</button>
+                </form>
+            </div>
+
+            <!-- AI Free Text Section -->
+            <div id="logger-ai-section" style="display: none; flex-direction: column; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label" for="ai-text-input">Describe what you did</label>
+                    <textarea id="ai-text-input" class="form-textarea" placeholder="e.g. 'I commuted 18 km by Delhi Metro today' or 'Log a vegetarian day for me'"></textarea>
+                    <span class="form-hint">Max 500 characters. Input is processed via Gemini event extractor.</span>
+                </div>
+                <button id="ai-submit-btn" class="btn-primary" style="width: 100%;">Extract & Log Activity</button>
+            </div>
+
+            <!-- Counterfactual Compare Panel -->
+            <div id="counterfactual-display" class="counterfactual-display">
+                <div class="counterfactual-title">Low Carbon Alternatives</div>
+                <div id="counterfactual-bars-container" class="counterfactual-bars"></div>
+                <div id="counterfactual-savings-summary" class="cf-savings-summary"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/onboarding.js"></script>
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/logger.js"></script>
+    <script src="/js/suggestions.js"></script>
+    <script src="/js/insights.js"></script>
+</body>
+</html>
