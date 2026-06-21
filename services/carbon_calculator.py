@@ -48,8 +48,8 @@ DIET_NON_VEG = 0.950
 DIET_VEGAN = 0.600            # General plant-based diet offset baseline
 
 # Daily Carbon Budget Target
-# India fair-share allocation under 1.5C Paris target (kg CO2/day)
-DAILY_BUDGET = 3.5
+# Level needed by 2030 to stay aligned with the 1.5°C climate goal (kg CO2/day)
+DAILY_BUDGET = 6.0
 
 # Onboarding Distance Midpoints (km)
 DISTANCE_MIDPOINTS = {
