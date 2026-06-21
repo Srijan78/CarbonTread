@@ -1,7 +1,6 @@
 import pytest
 import os
 import tempfile
-from datetime import datetime, timedelta
 import services.db
 from services.db import get_db_connection, init_db
 from services.baseline_engine import recalculate_baseline
@@ -14,12 +13,12 @@ def temp_database():
     # Override global DB_PATH in services.db so all connections point here
     old_db_path = services.db.DB_PATH
     services.db.DB_PATH = temp_db_path
-    
+
     # Initialize schema
     init_db()
-    
+
     yield
-    
+
     # Restore original path and unlink temp database file
     services.db.DB_PATH = old_db_path
     os.close(db_fd)
@@ -48,7 +47,7 @@ def test_baseline_no_change_without_events() -> None:
     """Verify that baseline does not adapt when there are no logged events."""
     user_id = "test-user-1"
     _create_test_user(user_id)
-    
+
     # Recalculate baseline for today
     ref_date = "2026-06-21"
     changed = recalculate_baseline(user_id, ref_date)
@@ -66,7 +65,7 @@ def test_baseline_no_change_below_threshold() -> None:
     """Verify that baseline does not adapt if a pattern occurs less than 4 times."""
     user_id = "test-user-2"
     _create_test_user(user_id)
-    
+
     # Log 3 metro events (below the 4/7 day threshold)
     # Range: 2026-06-14 to 2026-06-20
     conn = get_db_connection()
@@ -95,7 +94,7 @@ def test_baseline_adapts_transport_mode() -> None:
     """Verify that baseline commute mode adapts when logged on >= 4 days."""
     user_id = "test-user-3"
     _create_test_user(user_id)
-    
+
     # Log 4 metro events
     conn = get_db_connection()
     for day in ("2026-06-14", "2026-06-15", "2026-06-16", "2026-06-17"):
@@ -132,7 +131,7 @@ def test_baseline_adapts_diet_type() -> None:
     """Verify that baseline diet adapts when logged on >= 4 days."""
     user_id = "test-user-4"
     _create_test_user(user_id)
-    
+
     # Log 4 vegetarian food events
     conn = get_db_connection()
     for day in ("2026-06-14", "2026-06-15", "2026-06-18", "2026-06-19"):
@@ -160,7 +159,7 @@ def test_baseline_excludes_ac_adaptation() -> None:
     """Verify that AC configurations are explicitly excluded from adaptive baseline adjustments."""
     user_id = "test-user-5"
     _create_test_user(user_id)
-    
+
     # Log 7 AC usage duration events (changing AC usage to 0 or no AC)
     conn = get_db_connection()
     for day in ("2026-06-14", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-19", "2026-06-20"):

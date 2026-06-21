@@ -133,64 +133,63 @@ def get_daily_suggestions(user_id: str) -> List[Dict[str, Any]]:
     recommendations. Suggestions are deduplicated against a rolling window.
     """
     conn = get_db_connection()
+    try:
+        # 1. Return cached suggestions if already generated today
+        cached = _get_cached_suggestions_for_today(user_id, conn)
+        if cached:
+            return cached
 
-    # 1. Return cached suggestions if already generated today
-    cached = _get_cached_suggestions_for_today(user_id, conn)
-    if cached:
+        # 2. Build context: user profile
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT city, default_commute, commute_fuel_type, default_distance, diet, ac_usage, cooking_fuel FROM users WHERE id = ?;",
+            (user_id,)
+        )
+        user_row = cursor.fetchone()
+        if not user_row:
+            logger.error(f"User {user_id} not found when generating suggestions.")
+            return []
+
+        profile = dict(user_row)
+
+        # 3. Fetch recent events (last 7 days) as history context
+        cursor.execute(
+            """
+            SELECT category, subtype, value, unit, co2_kg, event_date
+            FROM events
+            WHERE user_id = ? AND event_date >= date('now', '-7 days')
+            ORDER BY event_date DESC;
+            """,
+            (user_id,)
+        )
+        history_events = [dict(row) for row in cursor.fetchall()]
+
+        # 4. Retrieve rolling dedup history
+        suggestion_history = _get_shown_suggestion_texts(user_id, conn)
+
+        # 5. Fetch weather — None on any failure, never a placeholder
+        weather = _fetch_weather(profile.get("city", ""))
+
+        # 6. Day of week for context
+        day_of_week = datetime.now().strftime("%A")
+
+        # 7. Invoke Gemini Call 2
+        result = generate_suggestions(
+            profile=profile,
+            history_events=history_events,
+            suggestion_history=suggestion_history,
+            weather=weather,
+            day_of_week=day_of_week
+        )
+
+        suggestions = result.get("suggestions", [])[:3]
+
+        # 8. Persist generated suggestions
+        if suggestions:
+            _save_suggestions(user_id, suggestions, conn)
+
+        # Re-fetch from database to guarantee they have IDs and default statuses
+        suggestions_with_ids = _get_cached_suggestions_for_today(user_id, conn)
+        return suggestions_with_ids or []
+    finally:
         conn.close()
-        return cached
-
-    # 2. Build context: user profile
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT city, default_commute, commute_fuel_type, default_distance, diet, ac_usage, cooking_fuel FROM users WHERE id = ?;",
-        (user_id,)
-    )
-    user_row = cursor.fetchone()
-    if not user_row:
-        conn.close()
-        logger.error(f"User {user_id} not found when generating suggestions.")
-        return []
-
-    profile = dict(user_row)
-
-    # 3. Fetch recent events (last 7 days) as history context
-    cursor.execute(
-        """
-        SELECT category, subtype, value, unit, co2_kg, event_date
-        FROM events
-        WHERE user_id = ? AND event_date >= date('now', '-7 days')
-        ORDER BY event_date DESC;
-        """,
-        (user_id,)
-    )
-    history_events = [dict(row) for row in cursor.fetchall()]
-
-    # 4. Retrieve rolling dedup history
-    suggestion_history = _get_shown_suggestion_texts(user_id, conn)
-
-    # 5. Fetch weather — None on any failure, never a placeholder
-    weather = _fetch_weather(profile.get("city", ""))
-
-    # 6. Day of week for context
-    day_of_week = datetime.now().strftime("%A")
-
-    # 7. Invoke Gemini Call 2
-    result = generate_suggestions(
-        profile=profile,
-        history_events=history_events,
-        suggestion_history=suggestion_history,
-        weather=weather,
-        day_of_week=day_of_week
-    )
-
-    suggestions = result.get("suggestions", [])[:3]
-
-    # 8. Persist generated suggestions
-    if suggestions:
-        _save_suggestions(user_id, suggestions, conn)
-
-    # Re-fetch from database to guarantee they have IDs and default statuses
-    suggestions_with_ids = _get_cached_suggestions_for_today(user_id, conn)
-    conn.close()
-    return suggestions_with_ids or []

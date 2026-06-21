@@ -55,7 +55,7 @@ def create_app() -> Flask:
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        
+
         # CSP rules allowing local assets, Google Fonts, GSAP CDN, and Gemini API requests
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "

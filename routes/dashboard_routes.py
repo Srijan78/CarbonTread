@@ -93,8 +93,12 @@ def get_dashboard() -> Response:
     medium_co2 = sum(
         c["co2_kg"] for c in categories.values() if c["confidence"] == "MEDIUM"
     )
-    clarity_pct = round(((high_co2 + medium_co2 * 0.5) /
-                         total_co2 * 100) if total_co2 > 0 else 0.0, 1)
+    clarity_numerator = high_co2 + medium_co2 * 0.5
+    clarity_pct = round(
+        (clarity_numerator / total_co2 * 100)
+        if total_co2 > 0 else 0.0,
+        1
+    )
 
     # India urban average for context (approx. 7.5 kg CO2/day per WRI
     # estimates)

@@ -134,13 +134,12 @@ def get_confidence() -> Response:
             elif conf == "MEDIUM":
                 weekly_medium_co2 += co2
 
+    numerator = weekly_high_co2 + weekly_medium_co2 * 0.5
     weekly_clarity = round(
-        ((weekly_high_co2 +
-          weekly_medium_co2 *
-          0.5) /
-         weekly_total_co2 *
-         100) if weekly_total_co2 > 0 else 0.0,
-        1)
+        (numerator / weekly_total_co2 * 100)
+        if weekly_total_co2 > 0 else 0.0,
+        1
+    )
 
     return jsonify({
         "categories": report,

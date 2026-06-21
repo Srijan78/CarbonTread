@@ -12,13 +12,13 @@ def client() -> FlaskClient:
     db_fd, temp_db_path = tempfile.mkstemp()
     old_db_path = services.db.DB_PATH
     services.db.DB_PATH = temp_db_path
-    
+
     app = create_app()
     app.config["TESTING"] = True
-    
+
     with app.test_client() as client:
         yield client
-        
+
     services.db.DB_PATH = old_db_path
     os.close(db_fd)
     try:
@@ -54,7 +54,7 @@ def test_onboarding_and_dashboard(client: FlaskClient) -> None:
     }
     prof_res = client.post("/api/onboarding/profile", json=profile_payload, headers=headers)
     assert prof_res.status_code == 200
-    
+
     # 3. Submit Part B recap
     recap_payload = {
         "transport_pattern": "mostly_metro_bus",
@@ -67,7 +67,7 @@ def test_onboarding_and_dashboard(client: FlaskClient) -> None:
     dash_res = client.get("/api/dashboard", headers=headers)
     assert dash_res.status_code == 200
     dash_data = dash_res.get_json()
-    
+
     assert dash_data["overall_confidence"] == "LOW"  # Today is low confidence (no today events logged yet)
     assert dash_data["categories"]["transport"]["confidence"] == "LOW"
     assert dash_data["categories"]["food"]["confidence"] == "LOW"
@@ -79,7 +79,7 @@ def test_event_logging(client: FlaskClient) -> None:
     init_res = client.post("/api/session/init")
     user_id = init_res.get_json()["user_id"]
     headers = {"X-User-ID": user_id}
-    
+
     client.post("/api/onboarding/profile", json={
         "city": "Delhi", "commute_mode": "car", "commute_fuel": "petrol",
         "distance_bucket": "15-30km", "diet": "non-veg", "ac_usage": "no", "cooking_fuel": "png"
@@ -138,7 +138,7 @@ def test_session_isolation(client: FlaskClient) -> None:
     # 4. Fetch User B's dashboard — should ONLY reflect User B's low confidence baseline
     dash_b = client.get("/api/dashboard", headers=headers_b)
     data_b = dash_b.get_json()
-    
+
     # User B's transport should still be LOW confidence (unaffected by User A's HIGH log)
     assert data_b["categories"]["transport"]["confidence"] == "LOW"
     # Transport co2 is baseline midpoint (10km) * metro factor (0.012) = 0.12 kg
@@ -147,7 +147,7 @@ def test_session_isolation(client: FlaskClient) -> None:
     # Fetch User A's dashboard — should reflect User A's logged high confidence event
     dash_a = client.get("/api/dashboard", headers=headers_a)
     data_a = dash_a.get_json()
-    
+
     assert data_a["categories"]["transport"]["confidence"] == "HIGH"
     assert data_a["categories"]["transport"]["co2_kg"] == 8.0
 

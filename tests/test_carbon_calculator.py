@@ -45,12 +45,12 @@ def test_calculate_transport_co2_modes() -> None:
     assert calculate_transport_co2("auto_rickshaw", 5.0) == 5.0 * CNG_AUTO
     assert calculate_transport_co2("two_wheeler", 15.0) == 15.0 * TWO_WHEELER
     assert calculate_transport_co2("walk_cycle", 5.0) == 0.0
-    
+
     # Fallback/casing cases
     assert calculate_transport_co2("walk", 5.0) == 0.0
     assert calculate_transport_co2("bike", 10.0) == 10.0 * TWO_WHEELER
     assert calculate_transport_co2("unknown_mode", 10.0) == 0.0
-    
+
     # Zero/negative bounds
     assert calculate_transport_co2("metro", 0.0) == 0.0
     assert calculate_transport_co2("metro", -10.0) == 0.0
@@ -64,7 +64,7 @@ def test_calculate_transport_co2_car_fuel() -> None:
     assert calculate_transport_co2("car", 10.0, "cng") == 10.0 * CNG_CAR
     assert calculate_transport_co2("car", 10.0, "electric") == 10.0 * ELECTRIC_CAR
     assert calculate_transport_co2("car", 10.0) == 10.0 * PETROL_CAR  # default fallback
-    
+
     # Uber/Ola
     assert calculate_transport_co2("uber_ola", 10.0, "diesel") == 10.0 * DIESEL_CAR
     assert calculate_transport_co2("uber", 10.0, "electric") == 10.0 * ELECTRIC_CAR
@@ -103,11 +103,11 @@ def test_calculate_counterfactuals() -> None:
     """Verify comparative counterfactual calculations between car and transit modes."""
     distance = 15.0
     cf_petrol = calculate_counterfactuals(distance, "petrol")
-    
+
     expected_car = distance * PETROL_CAR
     expected_metro = distance * METRO
     expected_bus = distance * BUS_SHARED
-    
+
     assert cf_petrol["car_co2"] == round(expected_car, 3)
     assert cf_petrol["metro_co2"] == round(expected_metro, 3)
     assert cf_petrol["bus_co2"] == round(expected_bus, 3)
